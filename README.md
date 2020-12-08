@@ -1,2 +1,2 @@
 # ses-redirecter-terraform
-Terraform workspace to create an ses-s3-lambda email redirecter environment
+Terraform workspace to create an AWS ses-s3-lambda email redirecter environment.
