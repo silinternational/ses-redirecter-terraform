@@ -24,7 +24,7 @@ resource "aws_s3_bucket" "s3_email_bucket" {
                 "Service": "ses.amazonaws.com"
             },
             "Action": "s3:PutObject",
-            "Resource": "arn:aws:s3:::${var.s3_email_bucket/*",
+            "Resource": "arn:aws:s3:::${var.s3_email_bucket}/*",
             "Condition": {
                 "StringEquals": {
                     "aws:Referer": data.aws_caller_identity.current.account_id
@@ -78,7 +78,7 @@ resource "aws_lambda_function" "ses_redirecter" {
   function_name    = var.function_name
   handler          = "lambda_handler"
   memory_size      = var.memory_size
-  role             = aws_iam_role.lambdaFunctionRole.arn
+  role             = aws_iam_role.iam_for_lambda.arn
   runtime          = "python3.7"
   timeout          = var.timeout
 
