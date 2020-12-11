@@ -1,7 +1,22 @@
 data "aws_caller_identity" "current" {}
 
-data "http" "function-checksum" {
-  url = "https://${var.function_bucket_name}.s3.amazonaws.com/${var.function_zip_name}.sum"
+data "template_file" "s3_bucket_policy" {
+  template = file("${path.module}/s3-bucket-iam-policy.json")
+
+  vars = {
+    s3_email_bucket = var.s3_email_bucket
+    aws_account_id  = data.aws_caller_identity.current.account_id
+  }
+}
+
+data "template_file" "lambda_policy" {
+  template = file("${path.module}/lambda-iam-policy.json")
+
+  vars = {
+    s3_email_bucket = var.s3_email_bucket
+    aws_account_id  = data.aws_caller_identity.current.account_id
+    aws_region  = var.aws_region
+  }
 }
 
 resource "aws_s3_bucket" "s3_email_bucket" {
@@ -13,78 +28,58 @@ resource "aws_s3_bucket" "s3_email_bucket" {
     Environment = var.app_env
   }
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-        {
-            "Sid": "AllowSESPuts",
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "ses.amazonaws.com"
-            },
-            "Action": "s3:PutObject",
-            "Resource": "arn:aws:s3:::${var.s3_email_bucket}/*",
-            "Condition": {
-                "StringEquals": {
-                    "aws:Referer": data.aws_caller_identity.current.account_id
-                }
-            }
-        }
-  ]
-}
-EOF
+  policy = data.template_file.s3_bucket_policy.rendered
 }
 
-resource "aws_iam_role" "iam_for_lambda" {
-  name        = "${var.app_name}-${var.app_env}-lambda-function-role"
+resource "aws_iam_policy" "lambda" {
+  name        = "app-${var.app_name}-${var.app_env}-lambda"
   description = "Write to logs, read s3 objects and send ses emails"
+
+  policy = data.template_file.lambda_policy.rendered
+}
+
+resource "aws_iam_role" "lambda" {
+  name               = "${var.app_name}-${var.app_env}-lambda-role"
+  description        = "Write to logs, read s3 objects and send ses emails"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-        "Sid": "VisualEditor0",
-        "Effect": "Allow",
-        "Action": [
-            "logs:CreateLogStream",
-            "logs:CreateLogGroup",
-            "logs:PutLogEvents"
-        ],
-        "Resource": "*"
-    },
-    {
-        "Sid": "VisualEditor1",
-        "Effect": "Allow",
-        "Action": [
-            "s3:GetObject",
-            "ses:SendRawEmail"
-        ],
-        "Resource": [
-            "arn:aws:s3:::${var.s3_email_bucket}/*",
-            "${data.aws_caller_identity.current.arn}/*"
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "lambda.amazonaws.com"
         ]
+      },
+      "Action": "sts:AssumeRole"
     }
   ]
 }
 EOF
+}
 
+resource "aws_iam_role_policy_attachment" "lambda_iam_policy_attachment" {
+    role = aws_iam_role.lambda.name
+    policy_arn = aws_iam_policy.lambda.arn
 }
 
 resource "aws_lambda_function" "ses_redirecter" {
   s3_bucket        = var.function_bucket_name
   s3_key           = var.function_zip_name
-  source_code_hash = data.http.function-checksum.body
+  source_code_hash = var.function_base64sha256
   function_name    = var.function_name
-  handler          = "lambda_handler"
+  handler          = "${var.function_file_name}.lambda_handler"
   memory_size      = var.memory_size
-  role             = aws_iam_role.iam_for_lambda.arn
+  role             = aws_iam_role.lambda.arn
   runtime          = "python3.7"
   timeout          = var.timeout
 
   environment {
     variables = {
       MailRecipient = var.email_recipient
+      MailSender    = var.email_sender
       MailS3Bucket  = var.s3_email_bucket
       MailS3Prefix  = var.s3_email_prefix
       Region        = var.aws_region
@@ -97,3 +92,15 @@ resource "aws_lambda_function" "ses_redirecter" {
   }
 }
 
+
+data "template_file" "instructions" {
+  template = file("${path.module}/instructions.txt")
+
+  vars = {
+    aws_region = var.aws_region
+    s3_email_bucket = var.s3_email_bucket
+    s3_email_prefix = var.s3_email_prefix
+    function_name = var.function_name
+  }
+
+}
