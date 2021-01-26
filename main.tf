@@ -92,9 +92,37 @@ resource "aws_lambda_function" "ses_redirecter" {
   }
 }
 
+data "aws_route53_zone" "selected" {
+  name  = "${var.domain}."
+  count = 1
+}
+
+resource "aws_ses_domain_identity" "domain" {
+  domain = var.ses_domain
+}
+
+resource "aws_route53_record" "mx" {
+  zone_id = data.aws_route53_zone.selected[0].zone_id
+  name    = var.ses_domain
+  type    = "MX"
+  ttl     = "600"
+  records = ["10 inbound-smtp.${var.aws_region}.amazonaws.com"]
+
+  count = 1
+}
+
+resource "aws_route53_record" "verification" {
+  zone_id = data.aws_route53_zone.selected[0].zone_id
+  name    = "_amazonses.${var.ses_domain}"
+  type    = "TXT"
+  ttl     = "600"
+  records = [aws_ses_domain_identity.domain.verification_token]
+
+  count = 1
+}
 
 data "template_file" "instructions" {
-  template = file("${path.module}/instructions.txt")
+  template = file("${path.module}/instructions.md")
 
   vars = {
     aws_region = var.aws_region

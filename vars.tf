@@ -65,6 +65,10 @@ variable "s3_email_prefix" {
   default = "emails"
 }
 
+variable "ses_domain" {
+  description = "example: ses.our.org"
+}
+
 variable "timeout" {
   default = "120"
 }
