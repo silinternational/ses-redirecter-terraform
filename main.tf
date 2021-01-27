@@ -92,40 +92,31 @@ resource "aws_lambda_function" "ses_redirecter" {
   }
 }
 
-data "aws_route53_zone" "selected" {
-  name  = "${var.domain}."
-  count = 1
+/*
+ * Create Cloudflare DNS record
+ */
+resource "cloudflare_record" "dns" {
+  zone_id  = data.cloudflare_zones.domain.zones[0].id
+  name     = var.ses_domain
+  value    = "inbound-smtp.${var.aws_region}.amazonaws.com"
+  type     = "MX"
+  proxied  = true
+  priority = 10
+  count    = var.use_cloudflare_dns
 }
 
-resource "aws_ses_domain_identity" "domain" {
-  domain = var.ses_domain
-}
-
-resource "aws_route53_record" "mx" {
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  name    = var.ses_domain
-  type    = "MX"
-  ttl     = "600"
-  records = ["10 inbound-smtp.${var.aws_region}.amazonaws.com"]
-
-  count = 1
-}
-
-resource "aws_route53_record" "verification" {
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  name    = "_amazonses.${var.ses_domain}"
-  type    = "TXT"
-  ttl     = "600"
-  records = [aws_ses_domain_identity.domain.verification_token]
-
-  count = 1
+data "cloudflare_zones" "domain" {
+  filter {
+    name        = var.cloudflare_domain
+    lookup_type = "exact"
+    status      = "active"
+  }
 }
 
 data "template_file" "instructions" {
   template = file("${path.module}/instructions.md")
 
   vars = {
-    aws_region = var.aws_region
     s3_email_bucket = var.s3_email_bucket
     s3_email_prefix = var.s3_email_prefix
     function_name = var.function_name

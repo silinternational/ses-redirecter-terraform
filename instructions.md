@@ -1,3 +1,13 @@
+...
+## AWS DNS record
+If you have left var.use_cloudflare_dns = 0 and want to use Route53, instead, do this.
+
+In Amazon SES, verify the domain that you want to use to receive incoming email.
+For more information, see https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-domain-procedure.html
+
+If it does not already exist in Route53, add the following MX record to the DNS configuration for your domain:
+
+10 inbound-smtp.${aws_region}.amazonaws.com
 
 ## In Amazon SES create a Receipt Rule Set
 In the Amazon SES console, make sure there is an active receipt rule set.

@@ -73,3 +73,8 @@ variable "ses_domain" {
 variable "timeout" {
   default = "120"
 }
+
+variable "use_cloudflare_dns" {
+  default     = 0
+  description = "1 = use cloudflare dns, 0 = do not use cloudflare dns"
+}
