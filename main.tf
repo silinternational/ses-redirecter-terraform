@@ -92,12 +92,31 @@ resource "aws_lambda_function" "ses_redirecter" {
   }
 }
 
+/*
+ * Create Cloudflare DNS record
+ */
+resource "cloudflare_record" "dns" {
+  zone_id  = data.cloudflare_zones.domain.zones[0].id
+  name     = var.ses_domain
+  value    = "inbound-smtp.${var.aws_region}.amazonaws.com"
+  type     = "MX"
+  proxied  = true
+  priority = 10
+  count    = var.use_cloudflare_dns
+}
+
+data "cloudflare_zones" "domain" {
+  filter {
+    name        = var.cloudflare_domain
+    lookup_type = "exact"
+    status      = "active"
+  }
+}
 
 data "template_file" "instructions" {
-  template = file("${path.module}/instructions.txt")
+  template = file("${path.module}/instructions.md")
 
   vars = {
-    aws_region = var.aws_region
     s3_email_bucket = var.s3_email_bucket
     s3_email_prefix = var.s3_email_prefix
     function_name = var.function_name
