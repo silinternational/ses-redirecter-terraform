@@ -39,6 +39,7 @@ variable "function_base64sha256" {
 variable "function_bucket_name" {
   description = "name of the s3 bucket which holds the lambda function zip file (must already exist)"
   type = string
+  default = "gtis-ses-redirecter-lambda"
 }
 
 variable "function_file_name" {
@@ -48,7 +49,7 @@ variable "function_file_name" {
 
 variable "function_zip_name" {
   description = "name of the zip file which holds the lambda function (must already exist)"
-  default = "ses-redirecter-lambda.zip"
+  default = "ses-redirecter-lambda.py.zip"
 }
 
 variable "memory_size" {
@@ -65,6 +66,15 @@ variable "s3_email_prefix" {
   default = "emails"
 }
 
+variable "ses_domain" {
+  description = "example: ses.our.org"
+}
+
 variable "timeout" {
   default = "120"
+}
+
+variable "use_cloudflare_dns" {
+  default     = 0
+  description = "1 = use cloudflare dns, 0 = do not use cloudflare dns"
 }
