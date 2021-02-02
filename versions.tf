@@ -1,4 +1,18 @@
 
 terraform {
   required_version = ">= 0.13"
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+    }
+    http = {
+      source = "hashicorp/http"
+    }
+    template = {
+      source = "hashicorp/template"
+    }
+  }
 }
