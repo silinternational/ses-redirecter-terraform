@@ -100,7 +100,7 @@ resource "cloudflare_record" "dns" {
   name     = var.ses_domain
   value    = "inbound-smtp.${var.aws_region}.amazonaws.com"
   type     = "MX"
-  proxied  = true
+  proxied  = false
   priority = 10
   count    = var.use_cloudflare_dns
 }
