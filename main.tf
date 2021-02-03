@@ -117,6 +117,7 @@ data "template_file" "instructions" {
   template = file("${path.module}/instructions.md")
 
   vars = {
+    aws_region = var.aws_region
     s3_email_bucket = var.s3_email_bucket
     s3_email_prefix = var.s3_email_prefix
     function_name = var.function_name
