@@ -16,6 +16,9 @@ variable "aws_access_key" {
 variable "aws_secret_key" {
 }
 
+variable "cloudflare_domain" {
+}
+
 variable "email_recipient" {
   description = "email address to which all emails will be forwarded"
   type = string
