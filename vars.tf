@@ -30,12 +30,12 @@ variable "email_sender" {
 }
 
 variable "function_name" {
-  description = "Don't include the file type (e.g. *.py)"
-  default = "ses-redirecter-lambda"
+  description = "E.g. project-ses-redirecter-stg.  Don't include the file type (e.g. *.py)"
+  type = string
 }
 
 variable "function_base64sha256" {
-  description = "$ terraform console ...  > base64sha256(\"ses-redirecter-lambda-function.py.zip\")"
+  description = "$ terraform console ...  > base64sha256(\"ses_redirecter_lambda.py.zip\")"
   type = string
 }
 
@@ -52,7 +52,7 @@ variable "function_file_name" {
 
 variable "function_zip_name" {
   description = "name of the zip file which holds the lambda function (must already exist)"
-  default = "ses-redirecter-lambda.py.zip"
+  default = "ses_redirecter_lambda.py.zip"
 }
 
 variable "memory_size" {
