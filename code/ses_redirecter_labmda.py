@@ -32,7 +32,7 @@ def get_text_email_info(mailobject):
     if not charset:
         charset = 'utf-8'
 
-    body_text = mailobject.get_payload()
+    body_text = mailobject.get_payload(decode=True)
     return sub_type, charset, body_text
 
 def get_attachment_info(att_index, mime_part):
@@ -41,7 +41,7 @@ def get_attachment_info(att_index, mime_part):
         filename = "attachment_" + str(att_index)
                 
 
-    file_contents = mime_part.get_payload()
+    file_contents = mime_part.get_payload(decode=True)
                 
     next = MIMEApplication(file_contents, filename) 
     next.add_header("Content-Disposition", 'attachment', filename=filename)
