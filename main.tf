@@ -93,6 +93,14 @@ resource "aws_lambda_function" "ses_redirecter" {
 }
 
 /*
+ * Cloudwatch log rules
+ */
+resource "aws_cloudwatch_log_group" "ses_redirecter" {
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = var.log_retention_days
+}
+
+/*
  * Create Cloudflare DNS record
  */
 resource "cloudflare_record" "dns" {

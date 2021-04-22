@@ -55,6 +55,11 @@ variable "function_zip_name" {
   default = "ses_redirecter_lambda.py.zip"
 }
 
+variable "log_retention_days" {
+  default     = 14
+  description = "number of days to retain Cloudwatch logs"
+}
+
 variable "memory_size" {
   default = "128"
 }
